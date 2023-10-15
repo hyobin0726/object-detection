@@ -138,27 +138,27 @@ def listen_print_loop(responses):
  global transcript
  num_chars_printed = 0
  for response in responses:
- if response.speech_event_type:
- text = transcript + overwrite_chars
- print('',format(text))
- return text
- if not response.results:
- continue
- result = response.results[0]
- if not result.alternatives:
- continue
- transcript = result.alternatives[0].transcript
- overwrite_chars = " " * (num_chars_printed - len(transcript))
- if not result.is_final:
- sys.stdout.write(transcript + overwrite_chars + "\r")
- sys.stdout.flush()
- num_chars_printed = len(transcript)
- else:
- print(transcript + overwrite_chars)
- if re.search(r"\b(exit|quit)\b", transcript, re.I):
- print("Exiting..")
- break
- num_chars_printed = 0
+  if response.speech_event_type:
+   text = transcript + overwrite_chars
+   print('',format(text))
+   return text
+  if not response.results:
+   continue
+  result = response.results[0]
+  if not result.alternatives:
+   continue
+  transcript = result.alternatives[0].transcript
+  overwrite_chars = " " * (num_chars_printed - len(transcript))
+  if not result.is_final:
+   sys.stdout.write(transcript + overwrite_chars + "\r")
+   sys.stdout.flush()
+   num_chars_printed = len(transcript)
+  else:
+   print(transcript + overwrite_chars)
+   if re.search(r"\b(exit|quit)\b", transcript, re.I):
+    print("Exiting..")
+    break
+   num_chars_printed = 0
 language_code = "ko-KR" 
 global transcript
 client = speech.SpeechClient()
@@ -172,10 +172,10 @@ streaming_config = speech.StreamingRecognitionConfig(
 )
 with MicrophoneStream(RATE, CHUNK) as stream:
  audio_generator = stream.generator()
- requests = (
- speech.StreamingRecognizeRequest(audio_content=content)
- for content in audio_generator
- )
+  requests = (
+   speech.StreamingRecognizeRequest(audio_content=content)
+   for content in audio_generator
+  )
  responses = client.streaming_recognize(streaming_config, requests)
  listen_print_loop(responses)
 if(transcript == " "): 유통기한
@@ -192,12 +192,12 @@ if(transcript == " "): 유통기한
  while cv2.getTickCount() < end_time:
  ret, frame = webcam.read()
  if ret:
- cv2.imshow("Webcam", frame)
- output.write(frame)
- if cv2.waitKey(1) == ord("q"):
- break
+  cv2.imshow("Webcam", frame)
+  output.write(frame)
+  if cv2.waitKey(1) == ord("q"):
+  break
  else:
- break
+  break
  webcam.release()
  output.release()
  cv2.destroyAllWindows()
@@ -211,7 +211,7 @@ if(transcript == " "): 유통기한
  cap = cv2.VideoCapture(video_path)
  ret, frame = cap.read()
  if not ret:
- raise ValueError("Failed to read the video file")
+  raise ValueError("Failed to read the video file")
  height, width = frame.shape[:2]
  output_video_path = '/home/pi/video/detections.avi'
  fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -219,36 +219,36 @@ if(transcript == " "): 유통기한
  
  frame_count = 0
  while cap.isOpened():
- ret, frame = cap.read()
- if not ret:
- break
- pil_image = Image.fromarray(frame[..., ::-1])
- results = model([pil_image], size=640)
- pred = results.pred[0]
- if len(pred) == 0:
- continue
- bboxes = pred[:, :4].cpu().numpy()
- class_labels = pred[:, -1].cpu().numpy().astype(int)
- confidences = pred[:, 4].cpu().numpy()
+  ret, frame = cap.read()
+  if not ret:
+   break
+  pil_image = Image.fromarray(frame[..., ::-1])
+  results = model([pil_image], size=640)
+  pred = results.pred[0]
+  if len(pred) == 0:
+   continue
+  bboxes = pred[:, :4].cpu().numpy()
+  class_labels = pred[:, -1].cpu().numpy().astype(int)
+  confidences = pred[:, 4].cpu().numpy()
  
- valid_indices = confidences >= confidence_threshold
- bboxes = bboxes[valid_indices]
- class_labels = class_labels[valid_indices]
+  valid_indices = confidences >= confidence_threshold
+  bboxes = bboxes[valid_indices]
+  class_labels = class_labels[valid_indices]
  
- for bbox, label in zip(bboxes, class_labels):
- xmin, ymin, xmax, ymax = bbox.astype(int)
- cropped_image = pil_image.crop((xmin, ymin, xmax, ymax))
- cropped_image.save(f'{output_dir}/{label}_frame_{frame_count}.jpg')
+  for bbox, label in zip(bboxes, class_labels):
+   xmin, ymin, xmax, ymax = bbox.astype(int)
+   cropped_image = pil_image.crop((xmin, ymin, xmax, ymax))
+   cropped_image.save(f'{output_dir}/{label}_frame_{frame_count}.jpg')
  
- frame_count += 1
- for bbox, label in zip(bboxes, class_labels):
- xmin, ymin, xmax, ymax = bbox.astype(int)
- cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
- cv2.putText(frame, str(label), (xmin, ymin - 10), 
+  frame_count += 1
+  for bbox, label in zip(bboxes, class_labels):
+   xmin, ymin, xmax, ymax = bbox.astype(int)
+   cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+   cv2.putText(frame, str(label), (xmin, ymin - 10), 
 cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
  output_video.write(frame)
  if frame_count >= 15:
- break
+  break
  cap.release()
  output_video.release()
  cv2.destroyAllWindows()
@@ -258,18 +258,19 @@ cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
  year = []
  month = []
  day = []
+  
  for filename in os.listdir(image_dir):
- if filename.endswith(('.jpg', '.jpeg', '.png')):
- image_path = os.path.join(image_dir, filename)
- image = Image.open(image_path)
- ocr_text = pytesseract.image_to_string(image)
- ocr_text1 = re.sub(r'[a-zA-Z\s.]', '', ocr_text)
- extracted_numbers = re.findall(r'20\d{6}',re.sub(r'[^0-9]', '', ocr_text1))
- print(extracted_numbers)
- for number in extracted_numbers:
- year.append(number[:4])
- month.append(number[4:6])
- day.append(number[6:8])
+  if filename.endswith(('.jpg', '.jpeg', '.png')):
+   image_path = os.path.join(image_dir, filename)
+   image = Image.open(image_path)
+   ocr_text = pytesseract.image_to_string(image)
+   ocr_text1 = re.sub(r'[a-zA-Z\s.]', '', ocr_text)
+   extracted_numbers = re.findall(r'20\d{6}',re.sub(r'[^0-9]', '', ocr_text1))
+   print(extracted_numbers)
+   for number in extracted_numbers:
+    year.append(number[:4])
+    month.append(number[4:6])
+    day.append(number[6:8])
  most_frequent_year = Counter(year).most_common(1)[0][0]
  most_frequent_month = Counter(month).most_common(1)[0][0]
  most_frequent_day = Counter(day).most_common(1)[0][0]
@@ -278,19 +279,18 @@ cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
  final_day = most_frequent_day
  from google.cloud import texttospeech
  client = texttospeech.TextToSpeechClient()
- synthesis_input = texttospeech.SynthesisInput(text='{} {} {} 년 월 일입니다
-'.format(final_year,final_month,final_day))
+ synthesis_input = texttospeech.SynthesisInput(text='{} {} {} 년 월 일입니다'.format(final_year,final_month,final_day))
  voice = texttospeech.VoiceSelectionParams(
- language_code="ko-KR", name="ko-KR-Wavenet-A"
+  language_code="ko-KR", name="ko-KR-Wavenet-A"
  )
  audio_config = texttospeech.AudioConfig(
- audio_encoding=texttospeech.AudioEncoding.MP3
+  audio_encoding=texttospeech.AudioEncoding.MP3
  )
  response = client.synthesize_speech(
- input=synthesis_input, voice=voice, audio_config=audio_config
+  input=synthesis_input, voice=voice, audio_config=audio_config
  )
  with open("final.mp3", "wb") as out:
- out.write(response.audio_content)
- print('Audio content written to file "final.mp3"')
+  out.write(response.audio_content)
+  print('Audio content written to file "final.mp3"')
  playsound("final.mp3")
  removefile.removefile('/home/pi/video/cropped_images')
