@@ -37,40 +37,40 @@ audio_played = False
 while cap.isOpened():
  ret, img = cap.read()
  if not ret:
- break
+  break
  img = cv2.flip(img, 1) 
  results = face_detection.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
  if results.detections:
- frame_count += 1
- if frame_count == 1:
- start_time = cv2.getTickCount()
- for detection in results.detections:
- mp_drawing.draw_detection(img, detection)
- x1 = detection.location_data.relative_bounding_box.xmin
- x2 = x1 + detection.location_data.relative_bounding_box.width
- cx = (x1 + x2) / 2 
- if cx < 0.4: 
- angle += ANGLE_STEP
- module.motor.angle(angle)
- elif cx > 0.6: 
- angle -= ANGLE_STEP
- module.motor.angle(angle)
- if not audio_played:
- pygame.mixer.music.play()
- audio_played = True
- cv2.putText(img, '%d deg' % (angle), org=(10, 30), 
+  frame_count += 1
+  if frame_count == 1:
+   start_time = cv2.getTickCount()
+  for detection in results.detections:
+   mp_drawing.draw_detection(img, detection)
+   x1 = detection.location_data.relative_bounding_box.xmin
+   x2 = x1 + detection.location_data.relative_bounding_box.width
+   cx = (x1 + x2) / 2 
+   if cx < 0.4: 
+    angle += ANGLE_STEP
+    module.motor.angle(angle)
+   elif cx > 0.6: 
+    angle -= ANGLE_STEP
+    module.motor.angle(angle)
+   if not audio_played:
+    pygame.mixer.music.play()
+    audio_played = True
+   cv2.putText(img, '%d deg' % (angle), org=(10, 30), 
 fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=255, thickness=2)
- break
+   break
  else:
- frame_count = 0
- start_time = cv2.getTickCount()
+  frame_count = 0
+  start_time = cv2.getTickCount()
  cv2.imshow('Face Cam', img)
  elapsed_time = (cv2.getTickCount() - start_time) / cv2.getTickFrequency()
  if elapsed_time > 5 and frame_count > 0:
- cap.release()
- break
+  cap.release()
+  break
  if cv2.waitKey(1) == ord('q'):
- break
+  break
 pygame.mixer.music.stop()
 pygame.mixer.quit()
 face_detection.close()
@@ -82,47 +82,47 @@ CHUNK = int(RATE / 10)
 class MicrophoneStream(object):
  """Opens a recording stream as a generator yielding the audio chunks."""
  def __init__(self, rate, chunk):
- self._rate = rate
- self._chunk = chunk
- self._buff = queue.Queue()
- self.closed = True
+  self._rate = rate
+  self._chunk = chunk
+  self._buff = queue.Queue()
+  self.closed = True
  def __enter__(self):
- self._audio_interface = pyaudio.PyAudio()
- self._audio_stream = self._audio_interface.open(
- format=pyaudio.paInt16,
- channels=1,
- rate=self._rate,
- input=True,
- frames_per_buffer=self._chunk,
- stream_callback=self._fill_buffer,
+  self._audio_interface = pyaudio.PyAudio()
+  self._audio_stream = self._audio_interface.open(
+   format=pyaudio.paInt16,
+   channels=1,
+   rate=self._rate,
+   input=True,
+   frames_per_buffer=self._chunk,
+   stream_callback=self._fill_buffer,
  )
- self.closed = False
- return self
+  self.closed = False
+  return self
  def __exit__(self, type, value, traceback):
- self._audio_stream.stop_stream()
- self._audio_stream.close()
- self.closed = True
- self._buff.put(None)
- self._audio_interface.terminate()
+  self._audio_stream.stop_stream()
+  self._audio_stream.close()
+  self.closed = True
+  self._buff.put(None)
+  self._audio_interface.terminate()
  def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
- """Continuously collect data from the audio stream, into the buffer."""
- self._buff.put(in_data)
- return None, pyaudio.paContinue
+  """Continuously collect data from the audio stream, into the buffer."""
+  self._buff.put(in_data)
+  return None, pyaudio.paContinue
  def generator(self):
- while not self.closed:
- chunk = self._buff.get()
- if chunk is None:
- return
- data = [chunk]
- while True:
- try:
- chunk = self._buff.get(block=False)
- if chunk is None:
- return
- data.append(chunk)
- except queue.Empty:
- break
- yield b"".join(data)
+  while not self.closed:
+   chunk = self._buff.get()
+   if chunk is None:
+    return
+   data = [chunk]
+   while True:
+    try:
+     chunk = self._buff.get(block=False)
+     if chunk is None:
+      return
+     data.append(chunk)
+    except queue.Empty:
+     break
+   yield b"".join(data)
 def listen_print_loop(responses):
  """Iterates through server responses and prints them.
  The responses passed is a generator that will block until a response
