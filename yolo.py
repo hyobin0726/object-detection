@@ -20,12 +20,12 @@ frame_count = 0
 while cap.isOpened():
  ret, frame = cap.read()
  if not ret:
- break
+  break
  pil_image = Image.fromarray(frame[..., ::-1])
  results = model([pil_image], size=640)
  pred = results.pred[0]
  if len(pred) == 0:
- continue
+  continue
  bboxes = pred[:, :4].cpu().numpy()
  class_labels = pred[:, -1].cpu().numpy().astype(int)
  confidences = pred[:, 4].cpu().numpy()
@@ -35,19 +35,19 @@ while cap.isOpened():
  class_labels = class_labels[valid_indices]
  
  for bbox, label in zip(bboxes, class_labels):
- xmin, ymin, xmax, ymax = bbox.astype(int)
- cropped_image = pil_image.crop((xmin, ymin, xmax, ymax))
- cropped_image.save(f'{output_dir}/{label}_frame_{frame_count}.jpg')
+  xmin, ymin, xmax, ymax = bbox.astype(int)
+  cropped_image = pil_image.crop((xmin, ymin, xmax, ymax))
+  cropped_image.save(f'{output_dir}/{label}_frame_{frame_count}.jpg')
  
  frame_count += 1
  for bbox, label in zip(bboxes, class_labels):
- xmin, ymin, xmax, ymax = bbox.astype(int)
- cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
- cv2.putText(frame, str(label), (xmin, ymin - 10), 
+  xmin, ymin, xmax, ymax = bbox.astype(int)
+  cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+  cv2.putText(frame, str(label), (xmin, ymin - 10), 
 cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
  output_video.write(frame)
  if frame_count >= 15:
- break
+  break
 cap.release()
 output_video.release()
 cv2.destroyAllWindows()
